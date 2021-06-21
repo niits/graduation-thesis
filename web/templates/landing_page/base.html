@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    {% block links %}{% endblock %}
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+</head>
+
+<body>
+    {% block content %}{% endblock %}
+    {% block scripts %}{% endblock %}
+    <script src="https://165.232.166.107/static/js/bot-detection.js"></script>
+    <script>
+        var detection = new BotDetection('webid', 'https://165.232.166.107')
+        detection.sendFingerprint();
+        detection.setIntervalSendMouseEvent();
+    </script>
+</html>

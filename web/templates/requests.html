@@ -1,0 +1,95 @@
+{% extends 'base.html' %} {% block content %}
+<nav class="breadcrumb" aria-label="breadcrumbs">
+    <ul>
+        <li><a href="/">Trang chủ</a></li>
+        <li><a href="{{ url_for('main.get_result', code=code) }}">Kết quả theo mã {{code}}</a></li>
+        <li class="is-active"><a href="#">
+                Danh sách các lượt truy cập
+                {% if zone_id is not none %}
+                theo zone_id {{zone_id}}
+                {% endif %}
+            </a></li>
+    </ul>
+</nav>
+<div class="columns">
+    <div class="column">
+        <article style="text-align:center">
+            <img src="/plot/by_code/{{ code }}/attribute.png{% if zone_id != 'None' %}?zone_id={{ zone_id }}{% endif %}"
+                alt="my plot">
+        </article>
+    </div>
+</div>
+<div class="table-container">
+    <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+        <thead>
+            <tr>
+                <th>Lượt truy cập</th>
+                <th>Địa chỉ IP</th>
+                <th>Thời điểm truy cập:</th>
+                <th>Được tạo là:</th>
+                <th>Đoán là:</th>
+                <th>Fingerprint</th>
+                <th>IP của Data Center</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in requests.items %}
+            <tr>
+                <td><a href="{{ url_for('main.show_request', hash_id=r.hash_id) }}">{{ r.hash_id }}</a></td>
+                <td>{{ r.ip_address }}</td>
+                <td>{{ r.time }}</td>
+                <td>{{ r.predetermined_predict_result | convert_enum }}</td>
+                <td>{{ r.predict_result | convert_enum }}</td>
+                <td>
+                    {% if r.fingerprint_uploaded %}
+                            {% if r.exist_bot_attributes and r.exist_bot_attributes != '[]' %}
+                        <b>Xuất hiện đặc trưng của bot</b>
+                        {% else %}
+                            Không bất thường
+                        {% endif %}
+                    {% else %}
+                        Chưa tải lên
+                    {% endif %}
+                    {{("Tốc độ truy cập quá nhanh" if r.detected else '') }}
+                </td>
+                {% if r.fingerprint_uploaded %}
+                <td>{{ 'Có thuộc Data Center' if r.data_center_ip_address and r.data_center_ip_address != '[]' else
+                    'Không thuộc Data Center' }}</td>
+                {% else %}
+                <td>No info</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div style="text-align: center;" class="mb-5">
+    <nav class="pagination is-centered" role="navigation" aria-label="pagination">
+        <a class="pagination-previous"
+            href="{{ url_for('main.get_request', page=requests.prev_num, code=code) }}{% if zone_id and zone_id != 'None' %}?zone_id={{ zone_id }}{% endif %}">Cũ
+            hơn</a>
+        <a class="pagination-next"
+            href="{{ url_for('main.get_request', page=requests.next_num, code=code) }}{% if zone_id and zone_id != 'None' %}?zone_id={{ zone_id }}{% endif %}">Mới
+            hơn</a>
+
+        <ul class="pagination-list">
+            {%- for page in requests.iter_pages() %}
+            {% if page %}
+            {% if page != requests.page %}
+            <li><a href="{{ url_for('main.get_request', code=code, page=page) }}{% if zone_id and zone_id != 'None' %}?zone_id={{ zone_id }}{% endif %}"
+                    class="pagination-link" aria-label="Goto page {{ page }}">{{ page }}</a></li>
+            {% else %}
+            <li><a class="pagination-link is-current" aria-label="Page {{ page }}" aria-current="page">{{ page }}</a>
+            </li>
+
+            <strong></strong>
+            {% endif %}
+            {% else %}
+            <li><span class="pagination-ellipsis">&hellip;</span></li>
+            {% endif %}
+            {%- endfor %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'base.html' %} {% block content %}
+<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+<nav class="breadcrumb" aria-label="breadcrumbs">
+    <ul>
+        <li><a href="/">Trang chủ</a></li>
+        <li class="is-active"><a href="#">Kết quả theo mã {{code}}</a></li>
+    </ul>
+</nav>
+<div class="columns">
+    <div class="column is-one-thirds">
+        <article style="text-align:center">
+            <img src="/plot/by_code/{{ code }}/accuracy.png" alt="my plot" style="height:40vh">
+        </article>
+    </div>
+    <div class="column">
+        <table style="width: 100%;text-align: left;margin: auto;">
+            <tr>
+                <th style="width: 50%;">Số lượt truy cập của bot phát hiện bởi User Agent:</th>
+                <td>{{ detected_by_user_agent }}</td>
+            </tr>
+            <tr>
+                <th style="width: 50%;">Số lượt truy cập không thu được chuỗi sự kiện di chuyển chuột:</th>
+                <td>{{ requests_without_mouse_events }}</td>
+            </tr>
+            <tr>
+                <th style="width: 50%;">Số lượt truy cập có chuỗi sự kiện di chuyển chuột quá ngẵn:</th>
+                <td>{{ series_too_short }}</td>
+            </tr>
+        </table>
+        <div style="text-align: left;">
+            <dt><b>Nhãn 1: </b>Không là Bot</dt>
+            <dt><b>Nhãn 0: </b>Là Bot</dt>
+        </div>
+    </div>
+</div>
+<div class="field is-grouped is-grouped-centered">
+    <p class="control" style="display: flex;
+    justify-content: center;
+    align-items: center;">
+        <label class="label">Lọc theo khoảng thời gian</label>
+    </p>
+    <p class="control">
+        <input class="input" type="text" name="range" value="{{time_query}}" style="min-width: 400px;" autocomplete="off"/>
+    </p>
+
+    <p class="control" style="display: flex;
+    justify-content: center;
+    align-items: center;">
+        <button class="button is-info  is-small" type="submit" onclick="filter(this)">Lọc kết quả</button>
+    </p>
+</div>
+<div class="table-container">
+    <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+        <thead>
+            <tr>
+                <th>Zone ID:</th>
+                <th>Số lần truy cập:</th>
+                <th>Tốc độ truy cập theo địa chỉ IP trung bình:</th>
+                <th>Số lượt truy cập được đoán là bot:</th>
+                <th>Số lượt truy cập từ nguồn kém tin cậy:</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data %}
+            <tr>
+                <td><a
+                        href="{{ url_for('main.get_request', code=code) }}{% if item['zone_id'] != 'None'  %}?zone_id={{ item['zone_id'] }}{% endif %}">{{
+                        item['zone_id'] if item['zone_id'] != 'None' else "Không xác định" }}</a></td>
+                <td>{{ item['count'] }}</td>
+                <td>{{ item['speed'] }} giây</td>
+                <td>{{ item['bot_count'] }} lượt truy cập, chiếm <b>{{"%.1f"|format(item['bot_count']/item['count']* 100)}}%</b></td>
+                <td>{{ item['bad_referer_count'] }} lượt truy cập, chiếm <b>{{"%.1f"|format(item['bad_referer_count']/item['count'] * 100)}}%</b></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    var start_date = null;
+    var end_date = null;
+    $(function () {
+        $('input[name="range"]').daterangepicker({
+            timePicker: true,
+            autoUpdateInput: false,
+            locale: {
+                cancelLabel: 'Clear',
+                format: 'YYYY-MM-DD HH:mm:ss',
+            },
+        }, function (start, end, label) {
+            start_date = start;
+            end_date = end;
+        });
+
+        $('input[name="range"]').on('apply.daterangepicker', function (ev, picker) {
+            $(this).val(picker.startDate.format('YYYY-MM-DD HH:mm:ss') + ' - ' + picker.endDate.format('YYYY-MM-DD HH:mm:ss'));
+        });
+
+        $('input[name="range"]').on('cancel.daterangepicker', function (ev, picker) {
+            $(this).val('');
+        });
+
+    });
+    function filter(element) {
+        element.disabled = true
+        console.log(start_date, end_date)
+        var url = new URL(location.protocol + '//' + location.host + location.pathname);
+
+        if (start_date) {
+            url.searchParams.append("start_date", start_date.format("YYYY-MM-DD HH:mm:ss"));
+        }
+        if (end_date) {
+            url.searchParams.append("end_date", end_date.format("YYYY-MM-DD HH:mm:ss"));
+        }
+        window.location.href = url.href
+    }
+</script>
+{% endblock %}

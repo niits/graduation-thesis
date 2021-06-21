@@ -1,0 +1,19 @@
+
+# python caches
+__pycache__/
+*.py[cod]
+
+# pytest
+.cache/
+
+# pycharm
+.idea/
+
+# celery
+celerybeat*
+
+.vscode/
+data/
+celery.log
+postgres-data
+venv

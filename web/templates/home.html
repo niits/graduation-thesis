@@ -1,0 +1,64 @@
+{% extends 'base.html' %} {% block content %}
+<div class="columns">
+    <div class="column is-one-thirds">
+        <div class="box">
+            <h1><b>Tổng lượt truy cập từ tất cả các mã:</b></h1>
+            <img src="/plot/by_user/{{ user.id }}/accuracy.png" alt="my plot">
+        </div>
+    </div>
+    <div class="column is-two-thirds is-flex">
+        <div class="box" style="width: 100%;">
+            <div class="is-pulled-right mb-1" style="display: block;width: 100%;">
+                <form action="{{ url_for('main.create_code') }}" method="post" class="mb-1">
+                    <div class="field has-addons is-expanded">
+                        <p class="control is-expanded">
+                            <input class="input is-primary" name="code" type="text" placeholder="Nhập nội dung mã">
+                        </p>
+                        <p class="control">
+                            <button onclick="click_button(this)" type="button" class="button is-primary">Tạo mã theo dõi mới</button>
+                        </p>
+                      </div>
+                </form>
+                {% with messages = get_flashed_messages() %} {% if messages %}
+                <div class="notification is-danger">{{ messages[0] }}</div>
+                {% endif %} {% endwith %}
+            </div>
+            <table class="table is-fullwidth">
+                <thead>
+                    <tr>
+                        <th>Mã theo dõi</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for code in codes %}
+                    {% if code.code %}
+                    <tr>
+                        <td class="has-text-left"><a href="{{ url_for('main.get_result', code=code.code) }}">{{ code.code }}</a></td>
+                        <td class="has-text-left"><a class="button is-info is-small" href="{{ url_for('main.get_request', code=code.code) }}">Tất cả lượt truy cập </button></td>
+                        <td class="has-text-right">
+                            <form action="{{ url_for('main.delete_code', id=code.id) }}" method="post">
+                                <button onclick="click_button(this)" type="button" class="button is-danger is-small">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endif%}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        function click_button(element) {
+            var upper = element.parentNode;
+            while (upper && upper.tagName != 'FORM') {
+                upper = upper.parentNode
+                console.log(upper.tagName)
+            }
+            element.disabled = true;
+            upper.submit();
+        }
+    </script>
+</div>
+{% endblock %}

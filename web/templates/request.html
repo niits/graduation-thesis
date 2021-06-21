@@ -1,0 +1,104 @@
+{% extends 'base.html' %} {% block content %}
+<nav class="breadcrumb" aria-label="breadcrumbs">
+    <ul>
+      <li><a href="/">Trang chủ</a></li>
+      <li><a href="{{ url_for('main.get_result', code=r.tracking_code) }}">Kết quả theo mã {{code}}</a></li>
+      <li><a href="{{ url_for('main.get_request', code=r.tracking_code) }}">Danh sách các lượt truy cập</a></li>
+      <li class="is-active"><a href="#">Thông tin lượt truy cập</a></li>
+
+    </ul>
+  </nav>
+<div class="columns">
+    <div class="column is-one-halfs">
+        <img src="/plot/request/{{ r.hash_id }}.png" alt="my plot">
+
+    </div>
+    <div class="column" style="text-align: left;">
+        <div class="m-1">
+            <h2>
+                <b>Địa chỉ IP:</b>
+                <span>{{ r.ip_address }}, được đánh dấu là <b>{{ 'thuộc Data Center từ nhà cung cấp {vendor}'.format(vendor=r.data_center_ip_address) if r.data_center_ip_address and r.data_center_ip_address != '[]' else 'Không thuộc Data Center'}}</b> </span>
+            </h2>
+            <div class="m-1">
+                <dt><b>User Agent:</b></dt>
+                <dd>{{ r.user_agent }}</dd>
+                <dt><b>Đã nhấn:</b></dt>
+                <dd>Tổng cộng <b>{{ data[-1]['count'] }}</b> lần từ thời điểm <b>{{ data[-1]['start'] }}</b> với tốc độ <b>{{ data[-1]['speed'] }}</b> giây một lần nhấn </dd>
+            </div>
+        </div>
+        <div class="columns">
+            <div class="column m-1" style="text-align: left;">
+                <dt><b>Thời điểm truy cập:</b></dt>
+                <dd>{{ r.time.strftime('%Y-%m-%d %H:%M:%S') }}</dd>
+                <dt><b>Điều hướng đến từ:</b> {{ r.referer }} <b>{{ 'được đánh dấu là spam' if r.bad_referer else ''}}</b></dt>
+            </div>
+            <div class="column m-1" style="text-align: left;">
+                <dt><b>Được tạo trước là:</b></dt>
+                <dd>{{ r.predetermined_predict_result | convert_enum }}</dd>
+
+                <dt><b>Được đoán là:</b></dt>
+                <dd>{{ r.predict_result | convert_enum }}</dd>
+            </div>
+        </div>
+        <div class="columns">
+            <div class="column m-1">
+                <dt>
+                    <b>Fingerprint đã được tải lên:</b>
+                    <span>{{ 'Đã tải lên' if r.fingerprint_uploaded else 'Chưa tải lên' }}</span>
+                </dt>
+                <dt>
+                    <b>Đặc trưng của bot đã tìm thấy:</b>
+                </dt>
+                <dd><span>{{r.exist_bot_attributes}}</span></dd>
+
+                <dt>
+                    <b>User Agent:</b>
+                    <span>{{ "Thông tin về User Agent không đồng nhất" if r.user_agent_inconsistency else "Không có điểm bất thường" }}</span>
+                </dt>
+                <dt>
+                    <b>Trình duyệt:</b>
+                    <span>{{ "Thông tin về trình duyệt không đồng nhất với User Agent" if r.browner_inconsistency else "Không có điểm bất thường" }}</span>
+                </dt>
+                <dt>
+                    <b>Hệ điều hành:</b>
+                    <span>{{ "Thông tin về trình duyệt không đồng nhất với User Agent" if r.os_inconsistency else "Không có điểm bất thường" }}</span>
+                </dt>
+            </div>
+            <div class="column m-1" style="text-align: left;">
+                <dt><b>Được tạo trước là:</b></dt>
+                <dd>{{ r.predetermined_predict_result | convert_enum }}</dd>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<div class="table-container">
+    <div>
+        <h5 class="title m-2 is-5" style="text-align: left;">
+            Thông tin thống kê từ các lượt truy cập từ địa chỉ IP {{ r.ip_address }} trong 1 ngày vừa qua:
+        </h5>
+    </div>
+
+    <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+        <thead>
+            <tr>
+                <th>Từ thời điểm</th>
+                <th>Đến thời điểm</th>
+                <th>Số lượt truy cập</th>
+                <th>Thời gian trung bình</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in data[::-1] %}
+            <tr>
+                <td>{{ i['start'].strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ i['end'].strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ i['count'] }}</td>
+                <td>{{ i['speed'] }} giây</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
